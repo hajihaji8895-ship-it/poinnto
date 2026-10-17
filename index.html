@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ポイ活 案件一括管理メモ</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --border: #cbd5e1;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 15px;
+    }
+    h1 {
+      font-size: 1.3rem;
+      text-align: center;
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+    }
+    .card-title {
+      font-weight: bold;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 5px;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 3px;
+      font-weight: 600;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+      font-family: inherit;
+    }
+    button {
+      width: 100%;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+    button:hover { background-color: #1d4ed8; }
+    .item-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .item-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex: 1;
+      min-width: 0;
+    }
+    .item-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .action-btn {
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      width: auto;
+      margin-top: 0;
+      white-space: nowrap;
+    }
+    .status-btn-confirm { background: #16a34a; }
+    .status-btn-confirm:hover { background: #15803d; }
+    .status-btn-pending { background: #d97706; }
+    .status-btn-pending:hover { background: #b45309; }
+    .edit-btn { background: #64748b; }
+    .edit-btn:hover { background: #475569; }
+    .save-btn { background: #2563eb; }
+    .save-btn:hover { background: #1d4ed8; }
+    .cancel-btn { background: #94a3b8; }
+    .cancel-btn:hover { background: #64748b; }
+    .edit-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .edit-fields input, .edit-fields textarea {
+      font-size: 0.85rem;
+      padding: 6px;
+    }
+    .site-tag {
+      display: inline-block;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      width: fit-content;
+      font-weight: bold;
+    }
+    .status-tag {
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-done { background: #dcfce7; color: #166534; }
+    .date-info {
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+    .deadline-info {
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .days-left { color: #d97706; }
+    .days-over { color: #dc2626; }
+    .memo-info {
+      font-size: 0.8rem;
+      color: #334155;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      padding: 6px 8px;
+      border-radius: 4px;
+      margin-top: 4px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .del-btn {
+      background: #ef4444;
+    }
+    .del-btn:hover { background: #dc2626; }
+    .total-box {
+      background: #eff6ff;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    /* 追加：記事リンクのスタイル */
+    .article-links {
+      margin-top: 20px;
+    }
+    .article-links a {
+      display: block;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: bold;
+    }
+    .article-links a:hover {
+      background: #f8fafc;
+    }
+    /* 広告エリアのスタイル */
+    .ad-section {
+      text-align: center;
+      margin-top: 20px;
+      padding: 15px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .ad-section p {
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ポイ活 案件一括管理メモ</h1>
+
+  <!-- 案件追加フォーム -->
+  <div class="card">
+    <div class="card-title">＋ 新しい案件を記録する</div>
+    <form id="project-form">
+      <div class="form-group">
+        <label for="projectName">案件名（例: SBI証券、クレジットカード）</label>
+        <input type="text" id="projectName" placeholder="例: セブン銀行口座開設" required>
+      </div>
+
+      <div class="form-group">
+        <label for="siteName">利用するポイントサイト</label>
+        <select id="siteName">
+          <option value="モッピー">モッピー</option>
+          <option value="ハピタス">ハピタス</option>
+          <option value="ポイントインカム">ポイントインカム</option>
+          <option value="ちょびリッチ">ちょびリッチ</option>
+          <option value="ポイントタウン">ポイントタウン</option>
+          <option value="ECナビ">ECナビ</option>
+          <option value="ワラウ">ワラウ</option>
+          <option value="げんだま">げんだま</option>
+          <option value="Powl">Powl（ポール）</option>
+          <option value="プレイオ">プレイオ</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="pointAmount">獲得予定ポイント（円換算額）</label>
+        <input type="number" id="pointAmount" placeholder="例: 5000" required>
+      </div>
+
+      <div class="form-group">
+        <label for="startDate">始めた日付（申込日）※任意</label>
+        <input type="date" id="startDate">
+      </div>
+
+      <div class="form-group">
+        <label for="deadlineDate">条件達成の期限日 ※任意</label>
+        <input type="date" id="deadlineDate">
+      </div>
+
+      <div class="form-group">
+        <label for="status">ステータス</label>
+        <select id="status">
+          <option value="判定中">判定中（承認待ち）</option>
+          <option value="確定">確定（付与済み）</option>
+          <option value="検討中">検討中（比較メモ）</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="memo">メモ欄（判定条件・注意事項など）※任意</label>
+        <textarea id="memo" placeholder="例: 5,000円以上入金＆初回取引、〇〇アプリ起動など"></textarea>
+      </div>
+
+      <button type="submit">保存する</button>
+    </form>
+  </div>
+
+  <!-- 集計表示 -->
+  <div class="total-box" id="totalSummary">
+    判定中: 0円 / 確定済み: 0円
+  </div>
+
+  <!-- 案件リスト -->
+  <div class="card">
+    <div class="card-title">管理中案件一覧</div>
+    <ul class="item-list" id="projectList"></ul>
+  </div>
+
+  <!-- 追加：解説記事へのリンク一覧（4つ） -->
+  <div class="card article-links">
+    <div class="card-title">ポイ活ガイド・解説記事（全4回）</div>
+    <a href="article1.html">📖 1. ポイ活で効率良く稼ぐための基礎知識と始め方</a>
+    <a href="article2.html">📖 2. 判定中・確定とは？ステータス管理と注意点</a>
+    <a href="article3.html">📖 3. 口座開設・クレカ発行で大量ポイントを獲得するコツ</a>
+    <a href="article4.html">📖 4. ポイントサイトの案件を「否認」されない必須対策</a>
+  </div>
+
+  <!-- 広告掲載エリア -->
+  <div class="ad-section">
+    <div class="card-title" style="border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 10px; text-align: left;">おすすめ案件・広告</div>
+    <!-- BIGLOBE WiMAX テキスト広告 -->
+    <p>
+      <a href="https://px.a8.net/svt/ejp?a8mat=4BEFL0+4WTTRE+B4+2BKM6Q" rel="nofollow" target="_blank">WiMAX +5GをはじめるならBIGLOBE</a>
+      <img border="0" width="1" height="1" src="https://www18.a8.net/0.gif?a8mat=4BEFL0+4WTTRE+B4+2BKM6Q" alt="">
+    </p>
+
+    <!-- ハピタス バナー広告 (300×250) -->
+    <p>
+      <a href="https://px.a8.net/svt/ejp?a8mat=4BEFL0+67V2JU+1LP8+CALN5" rel="nofollow" target="_blank">
+        <img border="0" width="300" height="250" alt="" src="https://www25.a8.net/svt/bgt?aid=261013860376&wid=004&eno=01&mid=s00000007478002065000&mc=1">
+      </a>
+      <img border="0" width="1" height="1" src="https://www12.a8.net/0.gif?a8mat=4BEFL0+67V2JU+1LP8+CALN5" alt="">
+    </p>
+  </div>
+
+  <script>
+    let projects = JSON.parse(localStorage.getItem('my_poikatsu_projects')) || [];
+    let editingIndex = null;
+
+    const form = document.getElementById('project-form');
+    const nameEl = document.getElementById('projectName');
+    const siteEl = document.getElementById('siteName');
+    const pointEl = document.getElementById('pointAmount');
+    const startEl = document.getElementById('startDate');
+    const deadlineEl = document.getElementById('deadlineDate');
+    const statusEl = document.getElementById('status');
+    const memoEl = document.getElementById('memo');
+    const listEl = document.getElementById('projectList');
+    const totalEl = document.getElementById('totalSummary');
+
+    function calculateDaysLeft(deadlineStr) {
+      if (!deadlineStr) return null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const deadline = new Date(deadlineStr);
+      deadline.setHours(0, 0, 0, 0);
+      
+      const diffTime = deadline - today;
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    function render() {
+      listEl.innerHTML = '';
+      let pendingTotal = 0;
+      let doneTotal = 0;
+
+      projects.forEach((item, index) => {
+        const val = parseInt(item.point) || 0;
+        if (item.status === '判定中') pendingTotal += val;
+        if (item.status === '確定') doneTotal += val;
+
+        const li = document.createElement('li');
+        li.className = 'item-card';
+
+        let statusClass = 'status-pending';
+        if (item.status === '確定') statusClass = 'status-done';
+
+        // 始めた日付テキスト
+        let startText = item.startDate ? `<span class="date-info">開始日: ${item.startDate}</span>` : '';
+
+        // 期限日・残り日数テキスト計算
+        let deadlineText = '';
+        if (item.deadline) {
+          const daysLeft = calculateDaysLeft(item.deadline);
+          if (daysLeft !== null) {
+            if (daysLeft > 0) {
+              deadlineText = `<span class="deadline-info days-left">（期限: ${item.deadline} / 残り ${daysLeft} 日）</span>`;
+            } else if (daysLeft === 0) {
+              deadlineText = `<span class="deadline-info days-left">（期限: 本日まで！）</span>`;
+            } else {
+              deadlineText = `<span class="deadline-info days-over">（期限切れ: ${Math.abs(daysLeft)}日経過）</span>`;
+            }
+          }
+        }
+
+        // メモ表示
+        let memoText = item.memo ? `<div class="memo-info">📝 ${escapeHtml(item.memo)}</div>` : '';
+
+        const isConfirm = item.status === '確定';
+        const statusBtnLabel = isConfirm ? '判定中にする' : '確定にする';
+        const statusBtnClass = isConfirm ? 'status-btn-pending' : 'status-btn-confirm';
+        const isEditing = editingIndex === index;
+
+        const infoHtml = isEditing ? `
+          <div>
+            <span class="site-tag">${item.site}</span>
+          </div>
+          <div class="edit-fields">
+            <input type="text" id="edit-name-${index}" value="${escapeAttr(item.name)}" placeholder="案件名" required>
+            <input type="number" id="edit-point-${index}" value="${escapeAttr(String(item.point))}" placeholder="ポイント数" required>
+            <textarea id="edit-memo-${index}" placeholder="メモ欄（判定条件・注意事項）">${escapeHtml(item.memo || '')}</textarea>
+          </div>
+          <div>
+            <span class="status-tag ${statusClass}">${item.status}</span>
+          </div>
+          ${startText}
+          ${deadlineText}
+        ` : `
+          <div>
+            <span class="site-tag">${item.site}</span>
+            <strong>${escapeHtml(item.name)}</strong>
+          </div>
+          <div style="font-size: 0.85rem; color: #475569;">
+            ${val.toLocaleString()} 円分 
+            <span class="status-tag ${statusClass}">${item.status}</span>
+          </div>
+          ${startText}
+          ${deadlineText}
+          ${memoText}
+        `;
+
+        const actionsHtml = isEditing ? `
+          <button class="action-btn save-btn" onclick="saveEdit(${index})">保存</button>
+          <button class="action-btn cancel-btn" onclick="cancelEdit()">キャンセル</button>
+        ` : `
+          <button class="action-btn ${statusBtnClass}" onclick="toggleStatus(${index})">${statusBtnLabel}</button>
+          <button class="action-btn edit-btn" onclick="startEdit(${index})">編集</button>
+          <button class="action-btn del-btn" onclick="deleteItem(${index})">削除</button>
+        `;
+
+        li.innerHTML = `
+          <div class="item-info">
+            ${infoHtml}
+          </div>
+          <div class="item-actions">
+            ${actionsHtml}
+          </div>
+        `;
+        listEl.appendChild(li);
+      });
+
+      totalEl.textContent = `判定中: ${pendingTotal.toLocaleString()}円 / 確定済み: ${doneTotal.toLocaleString()}円`;
+      localStorage.setItem('my_poikatsu_projects', JSON.stringify(projects));
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      projects.push({
+        name: nameEl.value,
+        site: siteEl.value,
+        point: pointEl.value,
+        startDate: startEl.value,
+        deadline: deadlineEl.value,
+        status: statusEl.value,
+        memo: memoEl.value
+      });
+      nameEl.value = '';
+      pointEl.value = '';
+      startEl.value = '';
+      deadlineEl.value = '';
+      memoEl.value = '';
+      render();
+    });
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function escapeAttr(str) {
+      return escapeHtml(str).replace(/'/g, '&#39;');
+    }
+
+    function toggleStatus(index) {
+      const item = projects[index];
+      item.status = item.status === '確定' ? '判定中' : '確定';
+      editingIndex = null;
+      render();
+    }
+
+    function startEdit(index) {
+      editingIndex = index;
+      render();
+    }
+
+    function saveEdit(index) {
+      const nameInput = document.getElementById(`edit-name-${index}`);
+      const pointInput = document.getElementById(`edit-point-${index}`);
+      const memoInput = document.getElementById(`edit-memo-${index}`);
+      const name = nameInput.value.trim();
+      const point = pointInput.value;
+      const memo = memoInput.value;
+      if (!name) {
+        alert('案件名を入力してください');
+        return;
+      }
+      if (point === '' || Number(point) < 0) {
+        alert('ポイント数を正しく入力してください');
+        return;
+      }
+      projects[index].name = name;
+      projects[index].point = point;
+      projects[index].memo = memo;
+      editingIndex = null;
+      render();
+    }
+
+    function cancelEdit() {
+      editingIndex = null;
+      render();
+    }
+
+    function deleteItem(index) {
+      if (editingIndex === index) editingIndex = null;
+      else if (editingIndex !== null && editingIndex > index) editingIndex -= 1;
+      projects.splice(index, 1);
+      render();
+    }
+
+    render();
+  </script>
+<!-- 関連ツールリンクエリア --><div style="margin-top: 30px; padding: 15px; background-color: #f9f9f9; border-radius: 8px;">
+  <h3 style="font-size: 16px; margin-bottom: 10px;">便利な関連ツール</h3>
+  <ul style="list-style: none; padding-left: 0; line-height: 1.8;">
+    <li>👉 <a href="https://konetu.pages.dev/">光熱費管理</a></li>
+    <li>👉 <a href="https://shoumikigen.pages.dev/">賞味期限管理</a></li>
+    <li>👉 <a href="https://kaimono-4nt.pages.dev/">買い物リスト</a></li>
+    <li>👉 <a href="https://souji-aap.pages.dev/">掃除管理</a></li>
+    <li>👉 <a href="https://running-29c.pages.dev/">ランニング記録</a></li>
+  </ul></div>
+</body>
+</html>
